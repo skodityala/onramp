@@ -1,0 +1,35 @@
+{
+  "name": "Onramp",
+  "short_name": "Onramp",
+  "description": "The first step, and only the first step.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#FAF9F6",
+  "theme_color": "#FAF9F6",
+  "categories": ["education", "productivity", "accessibility"],
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "Find my first step",
+      "short_name": "Start",
+      "url": "/",
+      "description": "Open Onramp and paste a task"
+    }
+  ]
+}
