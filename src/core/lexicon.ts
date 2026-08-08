@@ -57,7 +57,7 @@ export const CONDITIONALS = [
 
 /** Signals that a step has a defined end. */
 export const STOP_MARKERS = [
-  'until', 'then stop', 'and stop', 'nothing else', 'only', 'just the',
+  'until', 'then stop', 'and stop', 'nothing else', 'only',
   'one', 'first', 'title', 'sentence', 'line', 'paragraph', 'word', 'page',
   'question', 'problem', 'item', 'row', 'field', 'name', 'date',
 ] as const;
