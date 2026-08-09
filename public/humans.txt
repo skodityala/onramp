@@ -1,0 +1,15 @@
+/* TEAM */
+    Onramp is a hackathon submission focused on task initiation for
+    neurodivergent students. It is a considered refusal of the mechanics
+    that make existing productivity tools harmful for this audience.
+
+/* SITE */
+    Last update: 2026-08-08
+    Language: English
+    Standards: HTML5, CSS3, WCAG 2.2 AA+
+    Components: React 18, TypeScript, Vite
+    Software: The rules engine and the deterministic checker.
+
+/* THANKS */
+    To every neurodivergent contributor who tested this and told us
+    what did not work. See README.md for named acknowledgments.

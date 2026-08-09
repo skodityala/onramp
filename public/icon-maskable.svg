@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Onramp maskable icon">
+  <rect width="512" height="512" fill="#1F6F5C"/>
+  <path d="M 154 358 Q 256 358 256 256 T 358 154" fill="none" stroke="#FAF9F6" stroke-width="40" stroke-linecap="round"/>
+  <circle cx="154" cy="358" r="24" fill="#FAF9F6"/>
+</svg>

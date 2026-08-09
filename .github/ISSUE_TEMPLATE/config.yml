@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Read the design rationale first
+    url: https://github.com/skodityala/onramp/blob/main/docs/DESIGN.md
+    about: Many "obvious" features are refusals by design. Please read before filing.
+  - name: FAQ
+    url: https://github.com/skodityala/onramp/blob/main/docs/FAQ.md
+    about: Common questions with answers.

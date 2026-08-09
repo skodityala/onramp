@@ -1,0 +1,33 @@
+name: Feature request
+description: Something Onramp should do that it does not.
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before you file: read docs/DESIGN.md and the "What we deliberately left
+        out" section in README.md. Many "obvious" features are refusals here.
+        If your request is a refusal, we may still discuss it, but we will not
+        ship it.
+  - type: input
+    id: what
+    attributes:
+      label: What would you add?
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why?
+      description: What barrier does this address? Who does it help?
+    validations:
+      required: true
+  - type: textarea
+    id: refusal_check
+    attributes:
+      label: Refusal check
+      description: |
+        Read docs/DESIGN.md section 4. Is your request one of the refused
+        features? If so, why should we reconsider?
+    validations:
+      required: true

@@ -5,10 +5,11 @@ import { medianTimeToStart } from '../core/timing';
 import { startedCount } from '../core/session';
 import { shareUrl } from '../adapters/link';
 import { generateQRCode, available as qrAvailable } from '../adapters/qr';
+import { ShareDialog } from './ShareDialog';
 
 export const Finish: React.FC<{ session: Session; onRestart: () => void }> = ({ session, onRestart }) => {
-  const [copied, setCopied] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const [shareOpen, setShareOpen] = useState(false);
   const count = startedCount(session);
   const median = medianTimeToStart(session);
 
@@ -35,13 +36,7 @@ export const Finish: React.FC<{ session: Session; onRestart: () => void }> = ({ 
     ? COPY.finishMedian.replace('{n}', String(Math.round(median / 1000)))
     : null;
 
-  const send = async () => {
-    try {
-      await navigator.clipboard.writeText(link);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch { /* clipboard may be unavailable; do nothing loud */ }
-  };
+  const openShare = () => setShareOpen(true);
 
   return (
     <main className="wrap center-screen">
@@ -60,7 +55,7 @@ export const Finish: React.FC<{ session: Session; onRestart: () => void }> = ({ 
       )}
       <div className="controls" style={{ marginTop: 32 }}>
         <button className="control-primary" onClick={onRestart}>{COPY.finishCta}</button>
-        <button onClick={send}>{copied ? COPY.finishSendCopied : COPY.finishSend}</button>
+        <button onClick={openShare}>{COPY.finishSend}</button>
       </div>
       {qrDataUrl && (
         <figure style={{ marginTop: 24, textAlign: 'center' }}>
@@ -69,6 +64,13 @@ export const Finish: React.FC<{ session: Session; onRestart: () => void }> = ({ 
             {COPY.qrHeading}
           </figcaption>
         </figure>
+      )}
+      {shareOpen && (
+        <ShareDialog
+          url={link}
+          qrDataUrl={qrDataUrl}
+          onClose={() => setShareOpen(false)}
+        />
       )}
     </main>
   );

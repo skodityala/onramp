@@ -3,19 +3,22 @@ import { COPY } from './copy';
 import { makeIds } from './core/types';
 import type { Ids, Session } from './core/types';
 import {
-  currentStep, goBack, goSmaller, isFinished, markDone, startSession,
+  currentStep, goBack, goSmaller, isFinished, markDone, startedCount, startSession,
 } from './core/session';
-import { recordDone, recordFirstInput, setTyped } from './core/timing';
+import { medianTimeToStart, recordDone, recordFirstInput, setTyped } from './core/timing';
 import { loadSession, saveSession, clearSession } from './adapters/storage';
 import { readAssignmentFromHash } from './adapters/link';
+import { loadHistory, saveHistoryEntry, toEntry, type HistoryEntry } from './adapters/history';
 import {
   registerServiceWorker, canInstall, promptInstall, subscribeInstallAvailable,
 } from './adapters/pwa';
 import { Start } from './views/Start';
 import { StepView } from './views/StepView';
 import { Finish } from './views/Finish';
+import { Settings } from './views/Settings';
+import { History } from './views/History';
 
-type View = 'start' | 'step' | 'finish';
+type View = 'start' | 'step' | 'finish' | 'history';
 
 const now = () => (typeof performance !== 'undefined' ? performance.now() : Date.now());
 
@@ -26,6 +29,11 @@ export const App: React.FC = () => {
   const appearedAt = useRef<{ id: string; at: number }>({ id: '', at: 0 });
   const [spacing, setSpacing] = useState<'normal' | 'wide'>('normal');
   const [font, setFont] = useState<'sans' | 'mono'>('sans');
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [historyCount, setHistoryCount] = useState<number>(() => {
+    try { return loadHistory().length; } catch { return 0; }
+  });
+  const finishRecorded = useRef<string | null>(null);
   const [installVisible, setInstallVisible] = useState<boolean>(() => {
     try { return canInstall(); } catch { return false; }
   });
@@ -84,6 +92,18 @@ export const App: React.FC = () => {
     }
   }, [session?.cursor]);
 
+  // Record history entry when a session finishes (once per session id).
+  useEffect(() => {
+    if (!session) return;
+    if (!isFinished(session)) return;
+    if (finishRecorded.current === session.id) return;
+    finishRecorded.current = session.id;
+    try {
+      saveHistoryEntry(toEntry(session, true, medianTimeToStart(session), startedCount(session)));
+      setHistoryCount(loadHistory().length);
+    } catch { /* ignore */ }
+  }, [session]);
+
   const begin = useCallback((assignment: string) => {
     const s = startSession(assignment, ids.current, new Date().toISOString());
     setSession(s);
@@ -126,6 +146,7 @@ export const App: React.FC = () => {
     clearSession();
     setSession(null);
     setView('start');
+    finishRecorded.current = null;
   }, []);
 
   const toggleSpacing = useCallback(() => {
@@ -146,6 +167,19 @@ export const App: React.FC = () => {
   const dismissInstall = useCallback(() => {
     setInstallVisible(false);
     setInstallDismissed(true);
+  }, []);
+
+  const openHistory = useCallback(() => setView('history'), []);
+  const closeHistory = useCallback(() => {
+    setView(session ? (isFinished(session) ? 'finish' : 'step') : 'start');
+  }, [session]);
+
+  const resumeFromHistory = useCallback((entry: HistoryEntry) => {
+    const s = startSession(entry.assignmentExcerpt, ids.current, new Date().toISOString());
+    setSession(s);
+    setView(isFinished(s) ? 'finish' : 'step');
+    appearedAt.current = { id: s.cursor, at: now() };
+    finishRecorded.current = null;
   }, []);
 
   const showInstallBanner = installVisible && !installDismissed;
@@ -172,14 +206,74 @@ export const App: React.FC = () => {
         onClick={toggleFont}
         aria-pressed={font === 'mono'}
       >{COPY.toggleFont}</button>
+      <button
+        type="button"
+        onClick={() => setSettingsOpen(true)}
+        aria-label={COPY.settingsOpen}
+        title={COPY.settingsOpen}
+      >{'\u2699'}</button>
     </div>
   );
 
+  const settingsModal = settingsOpen ? (
+    <Settings
+      onClose={() => setSettingsOpen(false)}
+      onClearSession={() => {
+        clearSession();
+        setSession(null);
+        setView('start');
+        finishRecorded.current = null;
+        setSettingsOpen(false);
+      }}
+      onHistoryChange={() => {
+        try { setHistoryCount(loadHistory().length); } catch { setHistoryCount(0); }
+      }}
+    />
+  ) : null;
+
+  if (view === 'history') {
+    return (
+      <>
+        {installBanner}
+        {toggles}
+        <History onBack={closeHistory} onResume={resumeFromHistory} />
+        {settingsModal}
+      </>
+    );
+  }
+
   if (view === 'start' || !session) {
-    return <>{installBanner}{toggles}<Start onBegin={begin} /></>;
+    return (
+      <>
+        {installBanner}
+        {toggles}
+        <Start onBegin={begin} />
+        {historyCount > 0 && (
+          <div style={{ textAlign: 'center', marginTop: 16 }}>
+            <button
+              type="button"
+              onClick={openHistory}
+              style={{
+                background: 'transparent', border: 'none',
+                color: 'var(--ink-faint)', textDecoration: 'underline',
+                cursor: 'pointer', fontSize: 14, padding: 4,
+              }}
+            >{COPY.historyLink}</button>
+          </div>
+        )}
+        {settingsModal}
+      </>
+    );
   }
   if (view === 'finish') {
-    return <>{installBanner}{toggles}<Finish session={session} onRestart={restart} /></>;
+    return (
+      <>
+        {installBanner}
+        {toggles}
+        <Finish session={session} onRestart={restart} />
+        {settingsModal}
+      </>
+    );
   }
   return (
     <>
@@ -194,6 +288,7 @@ export const App: React.FC = () => {
         onFirstInput={onFirstInput}
         onTypedChange={onTypedChange}
       />
+      {settingsModal}
     </>
   );
 };

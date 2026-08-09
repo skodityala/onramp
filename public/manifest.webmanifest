@@ -5,31 +5,14 @@
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "orientation": "portrait-primary",
+  "orientation": "any",
   "background_color": "#FAF9F6",
-  "theme_color": "#FAF9F6",
+  "theme_color": "#1F6F5C",
+  "lang": "en",
   "categories": ["education", "productivity", "accessibility"],
   "icons": [
-    {
-      "src": "/icons/icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any"
-    },
-    {
-      "src": "/icons/maskable.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "maskable"
-    }
+    { "src": "/icon.svg", "type": "image/svg+xml", "sizes": "any", "purpose": "any" },
+    { "src": "/icon-maskable.svg", "type": "image/svg+xml", "sizes": "any", "purpose": "maskable" }
   ],
-  "prefer_related_applications": false,
-  "shortcuts": [
-    {
-      "name": "Find my first step",
-      "short_name": "Start",
-      "url": "/",
-      "description": "Open Onramp and paste a task"
-    }
-  ]
+  "screenshots": []
 }

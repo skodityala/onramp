@@ -1,0 +1,24 @@
+name: Accessibility issue
+description: Onramp is failing an accessibility need.
+labels: [accessibility, priority]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Accessibility issues are priority. Please describe what you need Onramp
+        to do that it currently does not.
+  - type: input
+    id: barrier
+    attributes:
+      label: What barrier are you hitting?
+    validations:
+      required: true
+  - type: input
+    id: assistive
+    attributes:
+      label: Assistive technology in use
+      placeholder: e.g. VoiceOver on iOS, NVDA on Windows, screen zoom, switch control
+  - type: textarea
+    id: what_would_help
+    attributes:
+      label: What would help?

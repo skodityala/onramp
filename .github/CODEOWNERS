@@ -1,0 +1,11 @@
+# Onramp core module ownership.
+# The atomicity checker, decomposer, and templates are load-bearing.
+# Changes here require design review.
+
+/src/core/atomicity.ts       @skodityala
+/src/core/decompose.ts       @skodityala
+/src/core/lexicon.ts         @skodityala
+/src/core/templates.ts       @skodityala
+/src/copy.ts                 @skodityala
+
+# Everything else is broadly reviewable.

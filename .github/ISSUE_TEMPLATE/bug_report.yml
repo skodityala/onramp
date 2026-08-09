@@ -1,0 +1,40 @@
+name: Bug report
+description: Something in Onramp did not work as documented.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before you file, please read: Onramp is a considered refusal in many places.
+        If a feature is missing (progress bar, streak, praise, gamification), it is
+        by design, not a bug. See docs/DESIGN.md.
+  - type: input
+    id: what
+    attributes:
+      label: What went wrong?
+      description: One sentence.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: How to reproduce
+      description: Numbered steps. Include the assignment text you pasted, if any.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect instead?
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and version
+      placeholder: e.g. Safari 18.2 on macOS 15.2
+  - type: input
+    id: locale
+    attributes:
+      label: Locale
+      placeholder: en, es, fr

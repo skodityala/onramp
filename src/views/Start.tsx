@@ -1,8 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { COPY, EXAMPLES } from '../copy';
+import { useCopy, useExamples } from '../i18n';
 import { voiceAvailable, startVoice, type VoiceSession } from '../adapters/voice';
 
 export const Start: React.FC<{ onBegin: (assignment: string) => void }> = ({ onBegin }) => {
+  const COPY = useCopy();
+  const EXAMPLES = useExamples();
   const [text, setText] = useState('');
   const [error, setError] = useState('');
   const [listening, setListening] = useState(false);

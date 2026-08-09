@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { COPY } from '../copy';
+import { useCopy } from '../i18n';
 import type { Session, Step } from '../core/types';
 import { modeOf } from '../core/mode';
 import { AuditPanel } from './AuditPanel';
@@ -14,15 +14,15 @@ interface Props {
   onTypedChange: (text: string) => void;
 }
 
-const duration = (s: number): string => {
-  const unit = s < 90 ? 'seconds' : 'minutes';
-  const n = s < 90 ? s : Math.round(s / 60);
-  return COPY.stepDuration.replace('{n}', String(n)).replace('{unit}', unit);
-};
-
 export const StepView: React.FC<Props> = ({
   session, step, onDone, onSmaller, onBack, onFirstInput, onTypedChange,
 }) => {
+  const COPY = useCopy();
+  const duration = (s: number): string => {
+    const unit = s < 90 ? 'seconds' : 'minutes';
+    const n = s < 90 ? s : Math.round(s / 60);
+    return COPY.stepDuration.replace('{n}', String(n)).replace('{unit}', unit);
+  };
   const [showAudit, setShowAudit] = useState(false);
   const mode = modeOf(step.text);
   const timing = session.timings[step.id];
