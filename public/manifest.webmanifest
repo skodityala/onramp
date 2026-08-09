@@ -2,17 +2,21 @@
   "name": "Onramp",
   "short_name": "Onramp",
   "description": "The first step, and only the first step.",
-  "start_url": "/",
-  "scope": "/",
+  "start_url": "./",
+  "scope": "./",
+  "id": "onramp",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui", "browser"],
   "orientation": "any",
   "background_color": "#FAF9F6",
   "theme_color": "#1F6F5C",
   "lang": "en",
-  "categories": ["education", "productivity", "accessibility"],
+  "dir": "ltr",
+  "categories": ["education", "productivity", "utilities"],
+  "prefer_related_applications": false,
   "icons": [
-    { "src": "/icon.svg", "type": "image/svg+xml", "sizes": "any", "purpose": "any" },
-    { "src": "/icon-maskable.svg", "type": "image/svg+xml", "sizes": "any", "purpose": "maskable" }
+    { "src": "./icon.svg", "type": "image/svg+xml", "sizes": "any", "purpose": "any" },
+    { "src": "./icon-maskable.svg", "type": "image/svg+xml", "sizes": "any", "purpose": "maskable" }
   ],
   "screenshots": []
 }

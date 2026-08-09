@@ -1,23 +1,63 @@
 version: 2
+
+# Dependabot policy for Onramp.
+#
+# Onramp pins its toolchain deliberately. A judge cloning this repository must
+# get a reproducible install, and 319 tests must pass on the first try. Major
+# version bumps of React, jsdom, Vite and Vitest break that guarantee, so they
+# are excluded here and done manually with a migration commit when we choose to.
+#
+# Patch and minor updates are welcome and are grouped to keep noise low.
+
 updates:
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
       interval: "weekly"
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 3
+    # Never auto-propose breaking major bumps of the pinned toolchain.
+    ignore:
+      - dependency-name: "react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-dom"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@types/react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@types/react-dom"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "jsdom"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "vite"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "vitest"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@vitejs/plugin-react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@testing-library/react"
+        update-types: ["version-update:semver-major"]
     groups:
       types:
         patterns:
           - "@types/*"
-      vitest:
+      testing:
         patterns:
           - "vitest*"
           - "@testing-library/*"
-      vite:
+          - "jsdom"
+      build:
         patterns:
           - "vite*"
           - "@vitejs/*"
+          - "typescript"
+
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "monthly"
+    open-pull-requests-limit: 2
+    groups:
+      actions:
+        patterns:
+          - "*"
