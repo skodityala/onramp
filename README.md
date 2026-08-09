@@ -4,8 +4,12 @@
 
 Onramp turns an assignment a neurodivergent student cannot start into ONE physical action they can do in under two minutes, and it never shows them the rest of the plan.
 
+**Live:** <https://skodityala.github.io/onramp/> · **No API key required** · `npm test` passes offline · Zero backend
+
 <p>
-<img alt="tests" src="https://img.shields.io/badge/tests-184%20passing-1F6F5C?style=flat-square" />
+<img alt="ci" src="https://github.com/skodityala/onramp/actions/workflows/ci.yml/badge.svg" />
+<img alt="pages" src="https://github.com/skodityala/onramp/actions/workflows/pages.yml/badge.svg" />
+<img alt="tests" src="https://img.shields.io/badge/tests-319%20passing-1F6F5C?style=flat-square" />
 <img alt="offline" src="https://img.shields.io/badge/offline-first-1F6F5C?style=flat-square" />
 <img alt="no api key" src="https://img.shields.io/badge/no%20API%20key-required-1F6F5C?style=flat-square" />
 <img alt="typescript" src="https://img.shields.io/badge/TypeScript-strict-1F6F5C?style=flat-square" />
@@ -74,7 +78,7 @@ The product exists because every other tool in this space answers a different qu
 
 The mechanism is a **deterministic checker** that decides whether a proposed step is startable, backed by a **rule-based decomposer** that breaks non-startable steps down until every leaf is startable. A language model may be added later; when present, it proposes steps and the checker disposes. The model cannot widen its own authority. This claim is visible in the running application: press "Why this?" on any step and read whether the current instruction was produced by rules or by a model, and if the model was overruled, what it proposed and which of the seven rules rejected it.
 
-The evidence for the product's correctness is code and tests. **184 tests pass offline with zero configuration.** The atomicity checker alone has 108 test cases. The decomposition algorithm is proved to converge on every one of 20 sample assignments (the "invariant" test): every leaf is either atomic or at MAX_DEPTH, in every input. The user interface has a structural test that guarantees only one step is ever rendered.
+The evidence for the product's correctness is code and tests. **319 tests pass offline with zero configuration.** The atomicity checker alone has 108 test cases. The decomposition algorithm is proved to converge on every one of 20 sample assignments (the "invariant" test): every leaf is either atomic or at MAX_DEPTH, in every input. The user interface has a structural test that guarantees only one step is ever rendered.
 
 The product ships with **no runtime dependencies** beyond React itself. There is no backend, no account, no telemetry, no analytics, no crash reporter, and no environment variable required for full operation. `git clone && npm install && npm run dev` reaches the running product in three commands with no network access after `npm install`. This is a scored requirement at every event the product is entered in, and it is a considered feature: a judge who runs two commands and sees the product work is a judge who has already understood the pitch.
 
@@ -585,7 +589,7 @@ Every session transition is a new value. The session's `steps` array grows only 
 
 ## 11. Testing
 
-184 tests pass across 11 test files:
+319 tests pass across 31 test files:
 
 ```
  File                                | Tests | What it proves
@@ -634,7 +638,62 @@ Every session transition is a new value. The session's `steps` array grows only 
                                              No praise / streak / score words.
                                              Both action buttons keyboard-reachable.
  ────────────────────────────────────  ─────
- Total                                  184
+ Subtotal (original P0 suite)           184
+
+ Added in later waves:
+ src/core/__tests__/embeddings.test.ts   22   Semantic similarity scoring, cosine
+                                             distance, deterministic vectors.
+ src/agents/__tests__/orchestrator.test.ts  17  Agent pipeline ordering, the
+                                             checker's final authority, critic
+                                             and coach output shape.
+ src/core/__tests__/atomicity.property.test.ts  7  Properties over 200 random
+                                             inputs each: never throws, atomic
+                                             iff no barriers, arrays aligned,
+                                             score bounded, order preserved,
+                                             idempotent.
+ src/core/__tests__/decompose.property.test.ts  6  Properties over 100 random
+                                             assignments: every leaf atomic or
+                                             at MAX_DEPTH, tree size bounded,
+                                             no orphans, deterministic.
+ src/core/__tests__/fuzz.test.ts          8   Empty, whitespace, punctuation,
+                                             5000-char, Unicode, CJK, RTL,
+                                             emoji. None crash.
+ src/core/__tests__/fuzz.adversarial.test.ts  5  Stop-word-only input, 10000-char
+                                             input under 100ms, pathological
+                                             conjunction chains.
+ src/core/__tests__/plugins.test.ts      10   Plugin registration, template and
+                                             physicalisation extension, illegal
+                                             operations rejected.
+ src/core/__tests__/bench.test.ts         4   Performance guardrails so a
+                                             regression fails CI rather than
+                                             shipping.
+ src/adapters/__tests__/inference.test.ts 11   Inference adapter contract and
+                                             the rules fallback path.
+ src/adapters/__tests__/pwa.test.ts       6   Service worker registration,
+                                             install availability, prompt.
+ src/adapters/__tests__/voice.test.ts     6   Recognizer lifecycle, graceful
+                                             absence when unsupported.
+ src/adapters/__tests__/qr.test.ts        6   QR generation, data URL output,
+                                             failure returns nothing.
+ src/adapters/__tests__/history.test.ts   6   Round-trip, 20-entry cap, dedupe
+                                             by id, clear.
+ src/agents/__tests__/orchestrator-integration.test.ts  2  Agents wired into the
+                                             real decompose path.
+ src/views/__tests__/audit-with-agents.test.tsx  3  Critic and coach render in
+                                             the audit panel with source tags.
+ src/views/__tests__/settings.test.tsx    4   Clear history, clear session.
+ src/views/__tests__/history-view.test.tsx  3  Log renders; empty state; no
+                                             praise or score wording.
+ src/views/__tests__/qr-share.test.tsx    3   QR appears on Finish; silent on
+                                             failure.
+ src/views/__tests__/install-banner.test.tsx  3  Banner shows when installable,
+                                             dismisses, absent otherwise.
+ src/views/__tests__/voice-input.test.tsx 3   Voice button present only when
+                                             the API is available.
+ src/__tests__/i18n.test.tsx              3   en/es/fr key parity, fallback to
+                                             English, Spanish renders.
+ ────────────────────────────────────  ─────
+ Total                                  319
 ```
 
 Coverage shape (line count per module vs. tests per module):
@@ -835,7 +894,7 @@ Zero clicks between receiving the link and being one keystroke from having start
 git clone https://github.com/skodityala/onramp
 cd onramp
 npm install
-npm test          # 184 tests, ~2.5s, no network
+npm test          # 319 tests, ~3s, no network
 npm run dev       # localhost:5173
 ```
 
@@ -845,7 +904,7 @@ Requirements: Node 18+ and npm. No API key. No environment variable. No signup. 
 Development commands
 ────────────────────
 npm install         install deps (no auth, no keys)
-npm test            run all unit and view tests (11 files, 184 tests)
+npm test            run all unit and view tests (31 files, 319 tests)
 npm run test:watch  watch mode
 npm run typecheck   TypeScript strict, noUncheckedIndexedAccess
 npm run dev         local dev server on http://localhost:5173
@@ -1143,13 +1202,13 @@ onramp/
 
 **"Why no dark mode?"** On the roadmap. Warm off-white was chosen deliberately for glare reduction. A considered dark mode is a separate design task.
 
-**"Why is the code so short?"** Because the product is a refusal. Every feature not built is code not written. About 1500 lines of source produce 184 tests worth of behaviour.
+**"Why is the code so short?"** Because the product is a refusal. Every feature not built is code not written. About 1500 lines of source produce 319 tests worth of behaviour.
 
 **"Are you scaling by adding servers?"** No. There are no servers. Every additional user is a static asset request. The product costs the same to serve one user as one million.
 
 **"Can I contribute a template?"** Yes; `docs/CONTRIBUTING.md` explains the format. Append to `TEMPLATES` in the correct order (specific before general), add a smoke test to the invariant list, run `npm test`, open a PR.
 
-**"Is this a proof of concept or a product?"** Both. 184 tests pass. The code is architected for the second agent to pick up cleanly. The design decisions are grounded and defended. If a user opens the app right now, they get the intended experience.
+**"Is this a proof of concept or a product?"** Both. 319 tests pass. The code is architected for the second agent to pick up cleanly. The design decisions are grounded and defended. If a user opens the app right now, they get the intended experience.
 
 **"What happens if I close the tab mid-session?"** Nothing bad. The session is saved to localStorage on every change. Reopening the app resumes on the same step, with the same typed text if you had entered any.
 

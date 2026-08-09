@@ -10,6 +10,44 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 - Placeholder section for the next release. Contributors should add entries here under the appropriate subsection when opening a pull request.
 
+## [1.1.0] - 2026-08-09
+
+### Added
+
+- Live deployment at <https://skodityala.github.io/onramp/>, published by GitHub Actions on every push to main.
+- `VITE_BASE` environment override in `vite.config.ts` so the same source builds correctly for root-served hosts and for subpath hosts such as GitHub Pages project sites.
+- SPA fallback (`404.html`) in the Pages artifact.
+- Agent pipeline (checker, decomposer, critic, coach) behind an orchestrator, wired into the decompose path and surfaced in the audit panel with source tags. The deterministic checker retains final authority.
+- Plugin registry so a contributor can add templates and physicalisations without touching core.
+- Semantic similarity module for template matching.
+- Property tests for the checker (7 properties over 200 random inputs each) and the decomposer (6 properties over 100 random assignments).
+- Fuzz tests covering empty, whitespace, punctuation-only, 5000-character, 10000-character, Unicode, CJK, RTL and emoji input.
+- Performance guardrail tests so a regression fails CI rather than shipping.
+- Progressive Web App support: manifest, service worker registration, install banner, icons (standard and maskable), favicon, Apple touch icon.
+- QR code sharing on the Finish screen, generated client-side.
+- Voice input on the Start screen via the Web Speech API, hidden entirely when unavailable.
+- Private, gamification-free session history: a log with resume and delete, capped at 20 entries, never transmitted.
+- Settings modal with clear-history, clear-session, version and shortcut reference.
+- Share dialog with the URL, a copy button, the QR code, and a plain statement of what the link does and does not contain.
+- Internationalisation for English, Spanish and French, with per-key fallback to English. The checker lexicon remains English-only and this is documented.
+- Deploy configurations for Netlify, Vercel, Cloudflare Pages, GitHub Pages, Docker and nginx, each with a Content-Security-Policy and a Permissions-Policy.
+- Community health files: issue templates (bug, feature, accessibility), pull request template, CODEOWNERS, Dependabot policy, FUNDING.
+- Documentation: ARCHITECTURE, DESIGN, RESEARCH, PITCH, JUDGES, DEMO, FAQ, METRICS, EVALUATION, DEPLOY, BENCHMARKS, PRIVACY, THREAT_MODEL, DATA_FLOW, GOVERNANCE, COMPARISON, CASE_STUDIES, USER_STORIES, LAUNCH, I18N, AGENTS, PLUGINS, PWA.
+- README expanded to roughly 11,000 words with ASCII diagrams, tables and an accurate per-file test breakdown.
+
+### Changed
+
+- Test suite grew from 184 to 319 tests across 31 files.
+- `manifest.webmanifest` now uses relative `start_url`, `scope` and icon paths so installation works on any host including subpath deployments. Added `id` and `display_override`.
+- GitHub Actions bumped to `checkout@v7`, `setup-node@v7`, `upload-pages-artifact@v5`, `deploy-pages@v5`.
+- Dependabot now ignores breaking major bumps of the pinned toolchain (react, react-dom, jsdom, vite, vitest, typescript, testing-library) so a fresh clone stays reproducible. Patch and minor updates are still proposed, grouped.
+
+### Fixed
+
+- GitHub Pages deployment failed because Pages was not enabled and because assets were referenced from the domain root while the site is served from a subpath. Both are fixed and the live site is verified.
+- Removed `'just the'` from `STOP_MARKERS`: it collided with the banned-word test and `'only'` already covers the same stop-marker function.
+- Corrected stale test counts in the README and launch documentation.
+
 ### Changed
 
 - Nothing yet.

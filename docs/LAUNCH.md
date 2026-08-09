@@ -12,7 +12,7 @@ Onramp turns "write your essay" into "open a new doc". That is the entire produc
 
 **Variant B**
 
-Executive dysfunction is not laziness. It is the specific gap between deciding to begin and beginning. Onramp gives you one action, one duration, one Done button, and then it leaves. Offline, no API key, 306 tests, MIT license. https://github.com/skodityala/onramp
+Executive dysfunction is not laziness. It is the specific gap between deciding to begin and beginning. Onramp gives you one action, one duration, one Done button, and then it leaves. Offline, no API key, 319 tests, MIT license. https://github.com/skodityala/onramp
 
 **Variant C**
 
@@ -28,7 +28,7 @@ The reason it exists is executive dysfunction. Task initiation is a discrete fai
 
 The insight the project is built around is that a category name is not an action. "Brainstorm" is a category. "Write three bullets" is an action. Onramp refuses to output categories. A deterministic checker sits in front of the model and rejects any response that does not name a concrete verb, an object, and a duration. If the model disagrees with the checker, the checker wins. Every refusal is visible in an audit panel so users can see why a response was rewritten.
 
-The stack is deliberately small: static HTML, one JS file, an optional local model. 306 tests run offline in the browser. No API key. No backend, no analytics, no login. MIT licensed. No funding. No ads. Feedback from neurodivergent testers is what I want most.
+The stack is deliberately small: static HTML, one JS file, an optional local model. 319 tests run offline in the browser. No API key. No backend, no analytics, no login. MIT licensed. No funding. No ads. Feedback from neurodivergent testers is what I want most.
 
 ## 3. The Product Hunt entry
 
@@ -47,7 +47,7 @@ Who this is for: students and adults with ADHD, autism, or any pattern of execut
 
 Who this is not for: people who want a full study plan, a coach, a chat companion, or a system to track their week. Onramp does none of those things and will not be extended to.
 
-Offline, no API key, MIT license, 306 tests.
+Offline, no API key, MIT license, 319 tests.
 
 ## 4. The Show HN comment
 
@@ -117,7 +117,7 @@ Twenty four by thirty six inch hackathon poster, portrait, text only. Background
 │                                                            │
 │                                                            │
 │    Deterministic checker. No API key. Offline first.       │
-│    306 tests passing. MIT license.                         │
+│    319 tests passing. MIT license.                         │
 │                                                            │
 │                                                            │
 │                                                            │
@@ -139,7 +139,7 @@ The first step, and only the first step.
 In:   "Write a 5 page essay on WWI, due Friday"
 Out:  "Open a new doc."
 
-No API key. Offline first. 306 tests passing.
+No API key. Offline first. 319 tests passing.
 The deterministic checker overrules the model.
 Every refusal is deliberate.
 
