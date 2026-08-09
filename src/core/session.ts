@@ -2,6 +2,16 @@ import type { Ids, Session, Step } from './types';
 import { checkAtomicity } from './atomicity';
 import { buildTree, decomposeStep } from './decompose';
 
+/**
+ * Optional agent-produced fields that ride alongside a Session without
+ * requiring changes to the canonical Session type in types.ts. The values
+ * are typed as `unknown` so this module has zero dependency on agents/*.
+ */
+export type SessionWithAgents = Session & {
+  readonly critic?: Readonly<Record<string, unknown>>;
+  readonly coach?: Readonly<Record<string, unknown>>;
+};
+
 export function startSession(
   assignment: string, ids: Ids, now: string,
 ): Session {
@@ -88,4 +98,25 @@ export function startedCount(s: Session): number {
   const typed = Object.values(s.timings).filter((t) => t.msToFirstInput !== null).length;
   const physicalDone = s.done.filter((id) => !(s.timings[id]?.msToFirstInput)).length;
   return typed + physicalDone;
+}
+
+/**
+ * Return a new session with `critic` stored under `stepId`. Pure. Immutable.
+ * The value is opaque (`unknown`) to keep core free of agent type deps.
+ */
+export function attachCritic(
+  session: Session, stepId: string, critic: unknown,
+): SessionWithAgents {
+  const prev = (session as SessionWithAgents).critic ?? {};
+  return { ...session, critic: { ...prev, [stepId]: critic } };
+}
+
+/**
+ * Return a new session with `coach` stored under `stepId`. Pure. Immutable.
+ */
+export function attachCoach(
+  session: Session, stepId: string, coach: unknown,
+): SessionWithAgents {
+  const prev = (session as SessionWithAgents).coach ?? {};
+  return { ...session, coach: { ...prev, [stepId]: coach } };
 }

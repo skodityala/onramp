@@ -19,6 +19,8 @@ export const COPY = {
   auditSourceRules: 'Built by the rules engine.',
   auditSourceModel: 'Proposed by the model and accepted by the checker.',
   auditSourceRegated: 'The model proposed something the checker rejected, so the rules engine was used instead.',
+  auditCriticHeading: 'Critic',
+  auditCoachHeading: 'Coach',
   finishTitle: 'That is the whole thing, finished.',
   finishCta: 'Start something else',
   finishSend: 'Send this to someone',
@@ -30,6 +32,15 @@ export const COPY = {
   toggleSpacing: 'Extra spacing',
   toggleFont: 'Monospace',
   shortcuts: 'Keyboard: D done, S smaller, W why',
+  voiceStart: 'Speak your assignment',
+  voiceStop: 'Stop',
+  voiceListening: 'Listening',
+  voiceUnavailable: 'Voice input is not available in this browser.',
+  installTitle: 'Install Onramp on this device',
+  installCta: 'Install',
+  installDismiss: 'Not now',
+  qrHeading: 'Or scan to open',
+  qrAlt: 'QR code linking to this session',
 } as const;
 
 export const EXAMPLES = [

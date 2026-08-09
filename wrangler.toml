@@ -1,0 +1,20 @@
+name = "onramp"
+pages_build_output_dir = "dist"
+compatibility_date = "2026-08-08"
+
+[build]
+command = "npm run build"
+
+[[headers]]
+for = "/*"
+[headers.values]
+X-Frame-Options = "DENY"
+X-Content-Type-Options = "nosniff"
+Referrer-Policy = "no-referrer"
+Permissions-Policy = "geolocation=(), microphone=(self), camera=(), usb=(), payment=()"
+Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'"
+
+[[headers]]
+for = "/assets/*"
+[headers.values]
+Cache-Control = "public, max-age=31536000, immutable"

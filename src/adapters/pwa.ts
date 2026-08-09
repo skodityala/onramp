@@ -19,10 +19,12 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 let deferredPrompt: BeforeInstallPromptEvent | null = null;
+const installListeners = new Set<() => void>();
 
 /** Reset internal state. Intended for tests. */
 export const __resetPwaStateForTests = (): void => {
   deferredPrompt = null;
+  installListeners.clear();
 };
 
 /**
@@ -50,10 +52,25 @@ export const captureInstallPrompt = (): void => {
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e as BeforeInstallPromptEvent;
+    for (const cb of installListeners) {
+      try { cb(); } catch { /* ignore listener errors */ }
+    }
   });
 };
 
 export const canInstall = (): boolean => deferredPrompt !== null;
+
+/**
+ * Subscribe to "install prompt now available" notifications. Fires once
+ * immediately if a prompt is already captured. Returns an unsubscribe fn.
+ */
+export const subscribeInstallAvailable = (cb: () => void): (() => void) => {
+  installListeners.add(cb);
+  if (deferredPrompt !== null) {
+    try { cb(); } catch { /* ignore */ }
+  }
+  return () => { installListeners.delete(cb); };
+};
 
 /**
  * Trigger the platform's install prompt. Returns true if the user accepted.

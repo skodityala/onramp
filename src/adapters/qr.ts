@@ -42,3 +42,10 @@ export const toSvg = async (text: string, opts: QROptions = {}): Promise<string>
     errorCorrectionLevel: opts.errorCorrectionLevel ?? 'M',
   });
 };
+
+/** Convenience alias used by view code. Same as toDataUrl. */
+export const generateQRCode = (text: string, opts: QROptions = {}): Promise<string> =>
+  toDataUrl(text, opts);
+
+/** Whether QR generation is usable in the current runtime. */
+export const available = (): boolean => typeof QRCode !== 'undefined';

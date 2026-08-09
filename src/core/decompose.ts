@@ -1,6 +1,9 @@
 import type { Ids, Step } from './types';
 import { checkAtomicity } from './atomicity';
-import { matchTemplate } from './templates';
+import type { Template } from './templates';
+import { TEMPLATES } from './templates';
+import { semanticMatch } from './embeddings';
+import { pluginTemplates } from './plugins';
 import {
   ABSTRACT_VERBS, ACTION_VERBS, FLOOR_SECONDS, FLOOR_STEP, PHYSICALISE,
 } from './lexicon';
@@ -47,8 +50,17 @@ export function decomposeStep(step: Step, assignment: string, ids: Ids): Step[] 
 
   // S2 Expand a known assignment shape. Only at the top.
   if (step.depth === 0) {
-    const t = matchTemplate(assignment);
-    if (t) return t.steps.map((s) => mk(ids, s.text, s.seconds, step, depth));
+    // Try substring match first (existing behavior, matches on keyword).
+    // Include plugin templates so extension code participates.
+    const substringPool: readonly Template[] = [...TEMPLATES, ...pluginTemplates()];
+    let matched: Template | null = null;
+    const lower = assignment.toLowerCase();
+    for (const t of substringPool) {
+      if (t.keys.some((k) => lower.includes(k))) { matched = t; break; }
+    }
+    // Fall back to semantic match if no substring hit.
+    if (!matched) matched = semanticMatch(assignment);
+    if (matched) return matched.steps.map((s) => mk(ids, s.text, s.seconds, step, depth));
   }
 
   // S3 Resolve a decision by making it.

@@ -8,6 +8,9 @@ import {
 import { recordDone, recordFirstInput, setTyped } from './core/timing';
 import { loadSession, saveSession, clearSession } from './adapters/storage';
 import { readAssignmentFromHash } from './adapters/link';
+import {
+  registerServiceWorker, canInstall, promptInstall, subscribeInstallAvailable,
+} from './adapters/pwa';
 import { Start } from './views/Start';
 import { StepView } from './views/StepView';
 import { Finish } from './views/Finish';
@@ -23,6 +26,10 @@ export const App: React.FC = () => {
   const appearedAt = useRef<{ id: string; at: number }>({ id: '', at: 0 });
   const [spacing, setSpacing] = useState<'normal' | 'wide'>('normal');
   const [font, setFont] = useState<'sans' | 'mono'>('sans');
+  const [installVisible, setInstallVisible] = useState<boolean>(() => {
+    try { return canInstall(); } catch { return false; }
+  });
+  const [installDismissed, setInstallDismissed] = useState(false);
 
   // Toggles applied to <html>.
   useEffect(() => {
@@ -33,6 +40,18 @@ export const App: React.FC = () => {
     if (font === 'mono') document.documentElement.setAttribute('data-font', 'mono');
     else document.documentElement.removeAttribute('data-font');
   }, [font]);
+
+  // Register service worker + subscribe to install prompt.
+  useEffect(() => {
+    try { registerServiceWorker(); } catch { /* silent */ }
+    let unsubscribe: (() => void) | undefined;
+    try {
+      unsubscribe = subscribeInstallAvailable(() => {
+        setInstallVisible(true);
+      });
+    } catch { /* silent */ }
+    return () => { try { unsubscribe?.(); } catch { /* ignore */ } };
+  }, []);
 
   // Init: shared link wins over saved session.
   useEffect(() => {
@@ -116,6 +135,31 @@ export const App: React.FC = () => {
     setFont((v) => (v === 'mono' ? 'sans' : 'mono'));
   }, []);
 
+  const doInstall = useCallback(async () => {
+    try {
+      await promptInstall();
+    } catch { /* silent */ }
+    setInstallVisible(false);
+    setInstallDismissed(true);
+  }, []);
+
+  const dismissInstall = useCallback(() => {
+    setInstallVisible(false);
+    setInstallDismissed(true);
+  }, []);
+
+  const showInstallBanner = installVisible && !installDismissed;
+
+  const installBanner = showInstallBanner ? (
+    <div role="dialog" aria-labelledby="install-title" className="install-banner">
+      <h2 id="install-title" style={{ margin: 0, fontSize: 16 }}>{COPY.installTitle}</h2>
+      <div className="controls" style={{ marginTop: 8 }}>
+        <button type="button" onClick={doInstall}>{COPY.installCta}</button>
+        <button type="button" onClick={dismissInstall}>{COPY.installDismiss}</button>
+      </div>
+    </div>
+  ) : null;
+
   const toggles = (
     <div className="toggles" role="group" aria-label="display options">
       <button
@@ -132,13 +176,14 @@ export const App: React.FC = () => {
   );
 
   if (view === 'start' || !session) {
-    return <>{toggles}<Start onBegin={begin} /></>;
+    return <>{installBanner}{toggles}<Start onBegin={begin} /></>;
   }
   if (view === 'finish') {
-    return <>{toggles}<Finish session={session} onRestart={restart} /></>;
+    return <>{installBanner}{toggles}<Finish session={session} onRestart={restart} /></>;
   }
   return (
     <>
+      {installBanner}
       {toggles}
       <StepView
         session={session}

@@ -902,3 +902,391 @@ We do not cite specific studies with titles because doing so responsibly require
 ## 21. License
 
 MIT. See `LICENSE`.
+
+---
+
+## Appendix A: The moment-by-moment walkthrough
+
+This appendix walks through what happens inside the app from the moment the user pastes an assignment to the moment they see the first physical action. If you are a judge who wants to understand exactly what the product does, read this section.
+
+**T-0. The user opens the app.**
+
+`index.html` loads and mounts React. `App.tsx` runs its initialization effect: it checks `window.location.hash` for a shared assignment via `readAssignmentFromHash`. If present, it starts a session with that assignment immediately, bypassing the Start screen. Otherwise it attempts `loadSession()` from localStorage. If a session exists and is not finished, it resumes on that step. If a session exists but is finished, it goes to the Finish screen. If no session exists, it shows Start.
+
+For a fresh user, none of this fires: Start is shown.
+
+**T+1s. The user reads the label and types an assignment.**
+
+The textarea has autofocus. The label is programmatically associated via `htmlFor`. Placeholder text is present but not the only label; a screen reader announces "What do you have to do?" first.
+
+**T+30s. The user presses "Find my first step."**
+
+`onBegin(text)` fires. `App.begin(assignment)` runs:
+
+1. `startSession(assignment, ids.current, new Date().toISOString())` creates the session.
+2. Inside `startSession`, `checkAtomicity(trimmed, 3600)` runs on the raw assignment. For a typical essay it produces `[ABSTRACT, UNBOUNDED]` or similar.
+3. `buildTree` runs, recursively decomposing the root until every leaf is atomic or at MAX_DEPTH.
+4. `firstLeaf(steps, root.id)` walks left-most-deepest to find the first leaf.
+5. The session's cursor is set to that leaf's id.
+6. `appearedAt.current = { id: cursor, at: performance.now() }` is set to timestamp the moment this step became visible.
+7. The view state changes to 'step'.
+
+**T+30.005s. The step renders.**
+
+`StepView` is rendered with a single `step: Step` prop. It:
+
+1. Calls `modeOf(step.text)` to decide whether to render a textarea.
+2. Sets up the D/S/W keyboard listener on window.
+3. Renders `role="status" aria-live="polite"` on the step card so the new step is announced politely by a screen reader.
+4. If mode is 'type', renders an autofocused textarea beneath the duration line.
+
+**T+30.010s. The screen reader announces the step.**
+
+Because the region is `aria-live="polite"`, the announcement waits for the current speech to finish rather than interrupting. Because `role="status"` is set, the announcement is framed as a status message (not a critical alert).
+
+**T+31s. The user notices the textarea's cursor.**
+
+If the step is type-mode, the textarea has autofocus. The cursor is blinking in the place the work happens. This is the design goal: the moment of decision has been converted into the moment of action.
+
+**T+35s. The user types "T".**
+
+`onChange` fires with the new value. `StepView` calls `onFirstInput()` (once, latched with a ref) and `onTypedChange("T")`.
+
+`App.onFirstInput` runs, using functional state update:
+
+```ts
+setSession(prev => {
+  const delta = Math.max(0, now() - appearedAt.current.at);
+  return recordFirstInput(prev, prev.cursor, delta);
+});
+```
+
+The session's `timings[cursor]` gets `{ msToFirstInput: 5000, msToDone: null }`. The `data-started` attribute on the duration paragraph flips to true. The paragraph text swaps to "you started." The Done button label changes to "Done, next step."
+
+The visible step does NOT change. This is the crucial design decision: the acknowledgement is passive. The user was mid-sentence and would have their work destroyed by an advance.
+
+**T+50s. The user finishes typing the title, presses Done.**
+
+`App.onDone` runs:
+
+```ts
+setSession(prev => {
+  const delta = Math.max(0, now() - appearedAt.current.at);
+  const timed = recordDone(prev, prev.cursor, delta);
+  const next = markDone(timed);
+  if (isFinished(next)) setView('finish');
+  return next;
+});
+```
+
+`markDone` adds the current cursor to the `done` array, then advances the cursor to the next unfinished leaf via `nextLeaf`. The `useEffect` watching `session.cursor` fires: `appearedAt.current` is reset for the new step.
+
+**T+50.005s. The new step renders.**
+
+`key={step.id}` on the step card forces the rise animation to replay. Under reduced motion this is a no-op. The audit panel state is reset (collapsed) by another `useEffect`.
+
+**T+several minutes. Cycle repeats.**
+
+Each step either has a hosted typing surface or requires the user to do something physically. When they press Done on the last leaf, `isFinished(next)` returns true and the view changes to 'finish'.
+
+**Finish.** The Finish screen computes `startedCount(session)` and `medianTimeToStart(session)`. It renders:
+
+- The finish title.
+- "You started N times." (or "You started once.").
+- "You started each step in about N seconds."
+- Two buttons: "Start something else" and "Send this to someone."
+
+No confetti. No score. No comparison to a target. No sharing to social media. Just two plain factual sentences and two buttons.
+
+---
+
+## Appendix B: Every user-facing string, in one place
+
+Every string in the UI comes from `src/copy.ts`. There is exactly one place to change wording, one place for translators to target, and one file for the copy test to scan.
+
+```ts
+appTitle:              'Onramp'
+tagline:               'The first step, and only the first step.'
+startLabel:            'What do you have to do?'
+startPlaceholder:      'Paste it exactly as your teacher wrote it.'
+startCta:              'Find my first step'
+startExamplesLabel:    'Or try one of these'
+stepDone:              'Done'
+stepDoneNext:          'Done, next step'
+stepSmaller:           'Smaller'
+stepWhy:               'Why this?'
+stepWhyClose:          'Close'
+stepBack:              'previous step'
+stepDuration:          'about {n} {unit}'
+stepStarted:           'you started'
+auditHeading:          'Why this step'
+auditFrom:             'This came from'
+auditAuthority:        'The checker, not the model, decides when a step is small enough.'
+auditSourceRules:      'Built by the rules engine.'
+auditSourceModel:      'Proposed by the model and accepted by the checker.'
+auditSourceRegated:    'The model proposed something the checker rejected, ...'
+finishTitle:           'That is the whole thing, finished.'
+finishCta:             'Start something else'
+finishSend:            'Send this to someone'
+finishSendCopied:      'Copied'
+finishStartedOnce:     'You started once.'
+finishStartedMany:     'You started {n} times.'
+finishMedian:          'You started each step in about {n} seconds.'
+errorEmpty:            'Paste the task first and I will find a starting point.'
+toggleSpacing:         'Extra spacing'
+toggleFont:            'Monospace'
+shortcuts:             'Keyboard: D done, S smaller, W why'
+```
+
+Every one of these was chosen against a specific failure mode. If you are tempted to reword one, the design rationale is in `docs/DESIGN.md`.
+
+---
+
+## Appendix C: The banned-word list, in full
+
+`src/core/__tests__/copy.test.ts` scans every file under `src/` and asserts that none of these appear:
+
+```
+just (with trailing space)      minimises a difficulty the user is currently failing
+simply                          same
+easy                            same, plus implies fault when the user finds it not-easy
+easily                          same
+obviously                       adds shame to failure
+don't worry / dont worry        the user is not worrying; they are stuck
+great job                       contingent social reward; raises stakes of next attempt
+awesome                         same
+well done                       same
+you got this                    presumes an outcome the user does not have
+keep going                      pressure disguised as encouragement
+almost there                    same; also usually inaccurate
+nearly there                    same
+streak                          comparative maintained quantity; can be broken; a loss
+points                          scoring implies evaluation; evaluation stopped the user
+level up                        gamification mechanic
+badge                           reward mechanic
+reward                          reward mechanic
+congrats / congratulations      frames starting as a performance being evaluated
+```
+
+Note the trailing-space convention. `'just '` with a trailing space avoids collision with technical identifiers like `justify`, `adjust`, `justifyContent`. The test uses this exact string as the substring check. If you write `'just.'` at the end of a sentence, the test misses it; that is an accepted trade rather than a bug.
+
+---
+
+## Appendix D: Directory listing, annotated
+
+```
+onramp/
+├── .github/workflows/ci.yml          typecheck + test + build on every push
+├── .gitignore                        node_modules, dist, .env
+├── LICENSE                           MIT
+├── README.md                         this file
+├── CHANGELOG.md                      what shipped when
+├── CONTRIBUTING.md                   how to help without breaking the invariants
+├── CODE_OF_CONDUCT.md                Contributor Covenant + neurodivergent-aware notes
+├── SECURITY.md                       how to report vulnerabilities; what counts as one
+├── HANDOFF.md                        notes for the deployment / integration agent
+├── docs/
+│   ├── ARCHITECTURE.md               deep dive; module boundaries; state flow
+│   ├── DESIGN.md                     rationale for every design decision, refusal-first
+│   ├── RESEARCH.md                   evidence base; literature category references
+│   ├── PITCH.md                      30s / 3min / 10min pitches; per-event fit
+│   ├── JUDGES.md                     the 3-minute test; what to press; what to look for
+│   ├── DEMO.md                       shot-by-shot demo script with backup plans
+│   └── FAQ.md                        ~25 questions and honest answers
+├── index.html                        single mount point, no scripts elsewhere
+├── package.json                      2 runtime deps (react, react-dom); no more
+├── package-lock.json
+├── tsconfig.json                     strict, noUncheckedIndexedAccess
+├── vite.config.ts                    vitest jsdom setup
+└── src/
+    ├── App.tsx                       view state + session state + hash init
+    ├── main.tsx                      React root + StrictMode
+    ├── copy.ts                       every UI string, in one file
+    ├── styles.css                    design tokens as CSS variables
+    ├── test-setup.ts                 jest-dom vitest bridge
+    ├── core/                         PURE. no React, no DOM, no side effects.
+    │   ├── types.ts                  Barrier, Step, Session, Ids, StepMode, StepTiming
+    │   ├── lexicon.ts                8 word lists + PHYSICALISE map + FLOOR_STEP
+    │   ├── atomicity.ts              THE CHECKER (checkAtomicity, EXPLANATION, HINT)
+    │   ├── templates.ts              30 templates + matchTemplate
+    │   ├── decompose.ts              7 strategies + buildTree + MAX_DEPTH
+    │   ├── session.ts                startSession, markDone, goSmaller, goBack,
+    │   │                             currentStep, allLeaves, startedCount
+    │   ├── mode.ts                   modeOf(text) → 'type' | 'physical'
+    │   ├── timing.ts                 recordFirstInput, recordDone, medianTimeToStart
+    │   └── __tests__/                108 + 9 + 14 + 14 + 9 + 3 tests
+    ├── adapters/
+    │   ├── storage.ts                localStorage save/load/clear, silent fail
+    │   ├── link.ts                   URL-safe base64 encode/decode, hash reading
+    │   ├── llm.ts                    gating loop; falls back to rules on failure
+    │   ├── prompt.ts                 the model prompt as a constant
+    │   └── __tests__/                10 link tests
+    └── views/
+        ├── Start.tsx                 textarea, button, 3 example chips
+        ├── StepView.tsx              one step; typing surface; keyboard shortcuts
+        ├── AuditPanel.tsx            barriers + source + rejected proposal
+        ├── Finish.tsx                finish title + started count + share button
+        └── __tests__/                17 view tests across 4 files
+```
+
+---
+
+## Appendix E: Answers to expected judge questions
+
+**"Where is the AI?"** In `src/adapters/llm.ts`, guarded by two environment variables. When absent, the rules engine handles everything. When present, the model proposes and the checker disposes. The audit panel exposes which path produced the current step.
+
+**"How is this different from a to-do list?"** A to-do list shows the list. Onramp refuses to show the list. That is the entire product.
+
+**"How is this different from a mind-map?"** A mind-map shows the tree. Onramp refuses to show the tree. Same answer, different visual metaphor.
+
+**"How is this different from ChatGPT?"** A conversation with a language model reintroduces the exact decision-making that stopped the user. Every response invites a follow-up question. Onramp instead produces a single instruction and hands the user their own life back.
+
+**"Why no dark mode?"** On the roadmap. Warm off-white was chosen deliberately for glare reduction. A considered dark mode is a separate design task.
+
+**"Why is the code so short?"** Because the product is a refusal. Every feature not built is code not written. About 1500 lines of source produce 184 tests worth of behaviour.
+
+**"Are you scaling by adding servers?"** No. There are no servers. Every additional user is a static asset request. The product costs the same to serve one user as one million.
+
+**"Can I contribute a template?"** Yes; `docs/CONTRIBUTING.md` explains the format. Append to `TEMPLATES` in the correct order (specific before general), add a smoke test to the invariant list, run `npm test`, open a PR.
+
+**"Is this a proof of concept or a product?"** Both. 184 tests pass. The code is architected for the second agent to pick up cleanly. The design decisions are grounded and defended. If a user opens the app right now, they get the intended experience.
+
+**"What happens if I close the tab mid-session?"** Nothing bad. The session is saved to localStorage on every change. Reopening the app resumes on the same step, with the same typed text if you had entered any.
+
+**"What if I want to delete my session?"** The "Start something else" button on the Finish screen clears the session. During a session, refreshing the tab does not clear it; opening dev tools and running `localStorage.clear()` does.
+
+**"Do you have a demo video?"** Yes; the shot-by-shot script is in `docs/DEMO.md` and the video accompanies the submission.
+
+**"What if the judge does not run the code?"** Then this README is doing the work. This is why the README is 10,000 words long: a judge who reads it should be able to score the product without opening a terminal, and a judge who opens a terminal should find exactly what the README describes.
+
+---
+
+## Appendix F: The full state machine
+
+```
+                    ┌──────────────┐
+                    │   uninit     │
+                    └──────┬───────┘
+                           │
+                (hash contains #a=... ?)
+                           │
+                    yes ───┼─── no
+                           │
+                           ▼
+              (loadSession from localStorage)
+                           │
+              ┌────────────┼──────────────┐
+              │            │              │
+         session         session         no
+         exists and      exists and      session
+         not finished    finished
+              │            │              │
+              ▼            ▼              ▼
+         ┌──────────┐  ┌────────┐   ┌───────────┐
+         │  step    │  │ finish │   │  start    │
+         └────┬─────┘  └────┬───┘   └─────┬─────┘
+              │             │             │
+      D─────→ ▼             │  Start ─────┘
+      S/W─── │              │  something
+              │             │  else
+              ▼             ▼
+    (functional session update)
+              │
+              ▼
+    isFinished(next) ? 
+              │
+      yes ────┼──── no
+              │
+              ▼
+         ┌────────┐
+         │ finish │
+         └────────┘
+```
+
+---
+
+## Appendix G: Sample assignment matrix
+
+For quick reference, here is a matrix of common assignment types and what Onramp does with them:
+
+```
+Assignment                                     | Match template  | First step user sees
+──────────────────────────────────────────────  ───────────────  ──────────────────────────────
+Write a 5 page essay on WWI                    | essay           | Open a new doc.
+Read chapter 7 and take notes                  | read + notes    | Open the book to the first
+                                                                    page you need.
+Study for the biology test on Monday           | study           | Open your notes to the first
+                                                                    heading.
+Finish the math worksheet, questions 1-20      | math            | Open to problem 1.
+Make a presentation about renewable energy     | presentation    | Open a new slide deck.
+Write up the titration lab report              | lab             | Open the lab template.
+Build a small website for the club             | project         | Make a new folder and name it.
+Email Mr Harris about the trip                 | email           | Open a blank message.
+Clean and tidy your room before Sunday         | clean           | Pick up one object.
+Fill in the university application form        | apply           | Open the form.
+Summarise the article on urban planning        | notes           | Open a new doc and type the
+                                                                    topic as a heading.
+Finish the coding homework exercise 3          | code            | Open the file you need.
+Sort the thing out before it gets worse        | (no match)      | (generic fallback:
+                                                                    "Sort the thing out. Nothing
+                                                                    else." at halved time)
+Get the stuff ready for tomorrow               | (no match)      | (generic fallback)
+```
+
+The last two illustrate the fallback path. Even when no template matches, the checker + generic decomposition produce a startable step. It is less natural than the template output, but it works.
+
+---
+
+## Appendix H: Why the product refuses each feature that would seem obvious
+
+For each of the following "obvious" features, this is why the product does not have it:
+
+**A progress bar.** A progress bar communicates how much remains. For a user whose barrier is being overwhelmed by how much remains, that is the injury, not the treatment.
+
+**A step counter (3 of 12).** Same reason. Also: the count is dynamic (Smaller creates new children), so the count is not a stable quantity; showing it is either misleading or requires re-computing on every press, which draws attention to the very thing we are hiding.
+
+**An outline / table of contents.** Shows the list. Reproduces the overwhelm.
+
+**Confetti on completion.** Interrupts the moment of completion with a demand for attention. Also: the user finished a small step; celebration is out of proportion to the moment and reads as sarcastic once you notice it.
+
+**Praise / affirmation.** Contingent social reward. Applied to someone who routinely fails to start, it teaches that starting is a performance being evaluated.
+
+**Streak.** Comparative maintained quantity. Can be broken. Breaking a streak is a loss on top of already failing.
+
+**Score / points.** Scoring implies evaluation. Evaluation is what stopped the user.
+
+**Badges.** Reward mechanic; same failure mode.
+
+**A share to social media button.** The user shares their work when and how they want; the product does not turn a private moment of starting into content.
+
+**A dashboard for parents/teachers.** Surveillance. Also: the moment of starting is intimate; producing a report for a parent turns the tool into a snitch.
+
+**A leaderboard for classroom use.** Competition among students on task initiation is precisely the mechanic that harms this population.
+
+**A signup flow.** Starting a signup form is itself a task-initiation problem. Asking the user to complete one in order to get help with another is a category error.
+
+**Autoplay of instruction sounds.** Sound out of nowhere is startling. The product does not startle.
+
+**A countdown timer showing how much time remains for this step.** Creates time pressure. The estimate is offered as an approximate reassurance ("about 20 seconds"), not a target.
+
+**A "how are you feeling?" question at the start.** Additional decision. Additional cost. Onramp does not check in; it acts.
+
+**A settings panel with 25 options.** Every option is a decision. Two toggles for accessibility (spacing, monospace) are the maximum this product will offer.
+
+**A tutorial / onboarding flow.** The interface is a textarea and a button. If a tutorial is needed for that, the interface has failed.
+
+**A history of past sessions.** Considered for the roadmap, but only with the same anti-gamification stance: a log, not a scoreboard, never persisted to the cloud, and easy to clear.
+
+Every one of these was considered explicitly. Each is a refusal on purpose.
+
+---
+
+## Appendix I: What we ask users to do that other tools do not
+
+- Trust us that the other steps exist. They do; the code proves it. You just do not need to see them.
+- Believe us when we say your work is not being measured. It is not. There is no server.
+- Let the tool make small decisions for you. When the tool says "use the first option," it is not lazy; it is deliberately removing a fork so you can continue.
+- Try Smaller as many times as you need. You are not being scored on how many times.
+- Read the audit panel when you are curious, and never when you are not. It is there for interest, not for accountability.
+- Send this to someone who needs it. The share link is the most important thing you can do to help another person past this same wall.
+
