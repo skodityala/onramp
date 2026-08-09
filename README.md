@@ -44,6 +44,42 @@ Onramp turns an assignment a neurodivergent student cannot start into ONE physic
 
 ---
 
+<div align="center">
+
+### The whole product, in four screens
+
+<img src="docs/screenshots/01-start.png" alt="Onramp start screen: a single textarea asking what do you have to do" width="880" />
+
+<sub><b>Paste it exactly as your teacher wrote it.</b> No account, no onboarding, no feature tour.</sub>
+
+<br /><br />
+
+<img src="docs/screenshots/02-step.png" alt="One step on screen: Open a new doc, about 20 seconds" width="880" />
+
+<sub><b>One thing.</b> Not a plan, not twelve items. There is no progress bar and no outline view anywhere in this product.</sub>
+
+<br /><br />
+
+<img src="docs/screenshots/05-why.png" alt="The Why this panel showing which barriers the parent step failed" width="880" />
+
+<sub><b>Every step opens.</b> Which barrier the parent failed, and whether the rules engine or the model produced this, and if the model was overruled, what it had proposed.</sub>
+
+<br /><br />
+
+<img src="docs/screenshots/03-finish.png" alt="Finish screen reading That is the whole thing, finished. You started 7 times." width="880" />
+
+<sub><b>One true thing at the end.</b> No score, no badge, no streak to keep.</sub>
+
+<br /><br />
+
+<img src="docs/screenshots/04-mobile.png" alt="Onramp on a 390px mobile viewport" width="300" />
+
+<sub>390px. Same product, nothing hidden behind a menu.</sub>
+
+</div>
+
+---
+
 ## Table of contents
 
 - [1. Executive summary](#1-executive-summary)
